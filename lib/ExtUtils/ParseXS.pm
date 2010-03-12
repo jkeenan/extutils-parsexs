@@ -3,11 +3,10 @@ package ExtUtils::ParseXS;
 use 5.006;  # We use /??{}/ in regexes
 use Cwd;
 use Config;
+use Exporter;
 use File::Basename;
 use File::Spec;
 use Symbol;
-
-require Exporter;
 
 our (@ISA, @EXPORT_OK, $VERSION);
 @ISA = qw(Exporter);
@@ -542,7 +541,8 @@ EOF
           if (length $pre or $islength) { # Has a type
             if ($islength) {
               push @fake_INPUT_pre, $arg;
-            } else {
+            }
+            else {
               push @fake_INPUT, $arg;
             }
             # warn "pushing '$arg'\n";
@@ -1055,8 +1055,7 @@ EOF
 #    }
 EOF
 
-  if (@BootCode)
-  {
+  if (@BootCode) {
     print "\n    /* Initialisation Section */\n\n";
     @line = @BootCode;
     print_section();
@@ -1107,70 +1106,67 @@ sub standard_typemap_locations {
   return @tm;
 }
 
-sub TrimWhitespace
-{
+sub TrimWhitespace {
   $_[0] =~ s/^\s+|\s+$//go;
 }
 
-sub TidyType
-  {
-    local ($_) = @_;
+sub TidyType {
+  local ($_) = @_;
 
-    # rationalise any '*' by joining them into bunches and removing whitespace
-    s#\s*(\*+)\s*#$1#g;
-    s#(\*+)# $1 #g;
+  # rationalise any '*' by joining them into bunches and removing whitespace
+  s#\s*(\*+)\s*#$1#g;
+  s#(\*+)# $1 #g;
 
-    # change multiple whitespace into a single space
-    s/\s+/ /g;
+  # change multiple whitespace into a single space
+  s/\s+/ /g;
 
-    # trim leading & trailing whitespace
-    TrimWhitespace($_);
+  # trim leading & trailing whitespace
+  TrimWhitespace($_);
 
-    $_;
+  $_;
 }
 
 # Input:  ($_, @line) == unparsed input.
 # Output: ($_, @line) == (rest of line, following lines).
 # Return: the matched keyword if found, otherwise 0
 sub check_keyword {
-    $_ = shift(@line) while !/\S/ && @line;
-    s/^(\s*)($_[0])\s*:\s*(?:#.*)?/$1/s && $2;
+  $_ = shift(@line) while !/\S/ && @line;
+  s/^(\s*)($_[0])\s*:\s*(?:#.*)?/$1/s && $2;
 }
 
 sub print_section {
-    # the "do" is required for right semantics
-    do { $_ = shift(@line) } while !/\S/ && @line;
+  # the "do" is required for right semantics
+  do { $_ = shift(@line) } while !/\S/ && @line;
 
-    print("#line ", $line_no[@line_no - @line -1], " \"$filepathname\"\n")
+  print("#line ", $line_no[@line_no - @line -1], " \"$filepathname\"\n")
     if $WantLineNumbers && !/^\s*#\s*line\b/ && !/^#if XSubPPtmp/;
-    for (;  defined($_) && !/^$BLOCK_re/o;  $_ = shift(@line)) {
+  for (;  defined($_) && !/^$BLOCK_re/o;  $_ = shift(@line)) {
     print "$_\n";
-    }
-    print 'ExtUtils::ParseXS::CountLines'->end_marker, "\n" if $WantLineNumbers;
+  }
+  print 'ExtUtils::ParseXS::CountLines'->end_marker, "\n" if $WantLineNumbers;
 }
 
 sub merge_section {
-    my $in = '';
+  my $in = '';
 
-    while (!/\S/ && @line) {
-      $_ = shift(@line);
-    }
-
-    for (;  defined($_) && !/^$BLOCK_re/o;  $_ = shift(@line)) {
-      $in .= "$_\n";
-    }
-    chomp $in;
-    return $in;
+  while (!/\S/ && @line) {
+    $_ = shift(@line);
   }
 
-sub process_keyword($)
-  {
-    my($pattern) = @_;
-    my $kwd;
-
-    &{"${kwd}_handler"}()
-      while $kwd = check_keyword($pattern);
+  for (;  defined($_) && !/^$BLOCK_re/o;  $_ = shift(@line)) {
+    $in .= "$_\n";
   }
+  chomp $in;
+  return $in;
+}
+
+sub process_keyword($) {
+  my($pattern) = @_;
+  my $kwd;
+
+  &{"${kwd}_handler"}()
+    while $kwd = check_keyword($pattern);
+}
 
 sub CASE_handler {
   blurt ("Error: `CASE:' after unconditional `CASE:'")
@@ -1224,7 +1220,8 @@ sub INPUT_handler {
       # Function pointers are not yet supported with &output_init!
       print "\t" . &map_type($var_type, $var_name);
       $name_printed = 1;
-    } else {
+    }
+    else {
       print "\t" . &map_type($var_type);
       $name_printed = 0;
     }
@@ -1234,19 +1231,23 @@ sub INPUT_handler {
       if $var_num;
     $func_args =~ s/\b($var_name)\b/&$1/ if $var_addr;
     if ($var_init =~ /^[=;]\s*NO_INIT\s*;?\s*$/
-    or $in_out{$var_name} and $in_out{$var_name} =~ /^OUT/
-    and $var_init !~ /\S/) {
+      or $in_out{$var_name} and $in_out{$var_name} =~ /^OUT/
+      and $var_init !~ /\S/) {
       if ($name_printed) {
-    print ";\n";
-      } else {
-    print "\t$var_name;\n";
+        print ";\n";
       }
-    } elsif ($var_init =~ /\S/) {
+      else {
+        print "\t$var_name;\n";
+      }
+    }
+    elsif ($var_init =~ /\S/) {
       &output_init($var_type, $var_num, $var_name, $var_init, $name_printed);
-    } elsif ($var_num) {
+    }
+    elsif ($var_num) {
       # generate initialization code
       &generate_init($var_type, $var_num, $var_name, $name_printed);
-    } else {
+    }
+    else {
       print ";\n";
     }
   }
@@ -1276,7 +1277,8 @@ sub OUTPUT_handler {
     if ($outcode) {
       print "\t$outcode\n";
       print "\tSvSETMAGIC(ST(" , $var_num-1 , "));\n" if $DoSetMagic;
-    } else {
+    }
+    else {
       &generate_output($var_types{$outarg}, $var_num, $outarg, $DoSetMagic);
     }
     delete $in_out{$outarg}     # No need to auto-OUTPUT
@@ -1297,7 +1299,8 @@ sub INTERFACE_MACRO_handler() {
   TrimWhitespace($in);
   if ($in =~ /\s/) {        # two
     ($interface_macro, $interface_macro_set) = split ' ', $in;
-  } else {
+  }
+  else {
     $interface_macro = $in;
     $interface_macro_set = 'UNKNOWN_CVT'; # catch later
   }
@@ -1327,61 +1330,57 @@ sub PREINIT_handler() { print_section() }
 sub POSTCALL_handler() { print_section() }
 sub INIT_handler()    { print_section() }
 
-sub GetAliases
-  {
-    my ($line) = @_;
-    my ($orig) = $line;
-    my ($alias);
-    my ($value);
+sub GetAliases {
+  my ($line) = @_;
+  my ($orig) = $line;
+  my ($alias);
+  my ($value);
 
-    # Parse alias definitions
-    # format is
-    #    alias = value alias = value ...
+  # Parse alias definitions
+  # format is
+  #    alias = value alias = value ...
 
-    while ($line =~ s/^\s*([\w:]+)\s*=\s*(\w+)\s*//) {
-      $alias = $1;
-      $orig_alias = $alias;
-      $value = $2;
+  while ($line =~ s/^\s*([\w:]+)\s*=\s*(\w+)\s*//) {
+    $alias = $1;
+    $orig_alias = $alias;
+    $value = $2;
 
-      # check for optional package definition in the alias
-      $alias = $Packprefix . $alias if $alias !~ /::/;
+    # check for optional package definition in the alias
+    $alias = $Packprefix . $alias if $alias !~ /::/;
 
-      # check for duplicate alias name & duplicate value
-      Warn("Warning: Ignoring duplicate alias '$orig_alias'")
-    if defined $XsubAliases{$alias};
+    # check for duplicate alias name & duplicate value
+    Warn("Warning: Ignoring duplicate alias '$orig_alias'")
+      if defined $XsubAliases{$alias};
 
-      Warn("Warning: Aliases '$orig_alias' and '$XsubAliasValues{$value}' have identical values")
-    if $XsubAliasValues{$value};
+    Warn("Warning: Aliases '$orig_alias' and '$XsubAliasValues{$value}' have identical values")
+      if $XsubAliasValues{$value};
 
-      $XsubAliases = 1;
-      $XsubAliases{$alias} = $value;
-      $XsubAliasValues{$value} = $orig_alias;
-    }
-
-    blurt("Error: Cannot parse ALIAS definitions from '$orig'")
-      if $line;
+    $XsubAliases = 1;
+    $XsubAliases{$alias} = $value;
+    $XsubAliasValues{$value} = $orig_alias;
   }
 
-sub ATTRS_handler ()
-  {
-    for (;  !/^$BLOCK_re/o;  $_ = shift(@line)) {
-      next unless /\S/;
-      TrimWhitespace($_);
-      push @Attributes, $_;
-    }
-  }
+  blurt("Error: Cannot parse ALIAS definitions from '$orig'")
+    if $line;
+}
 
-sub ALIAS_handler ()
-  {
-    for (;  !/^$BLOCK_re/o;  $_ = shift(@line)) {
-      next unless /\S/;
-      TrimWhitespace($_);
-      GetAliases($_) if $_;
-    }
+sub ATTRS_handler () {
+  for (;  !/^$BLOCK_re/o;  $_ = shift(@line)) {
+    next unless /\S/;
+    TrimWhitespace($_);
+    push @Attributes, $_;
   }
+}
 
-sub OVERLOAD_handler()
-{
+sub ALIAS_handler () {
+  for (;  !/^$BLOCK_re/o;  $_ = shift(@line)) {
+    next unless /\S/;
+    TrimWhitespace($_);
+    GetAliases($_) if $_;
+  }
+}
+
+sub OVERLOAD_handler() {
   for (;  !/^$BLOCK_re/o;  $_ = shift(@line)) {
     next unless /\S/;
     TrimWhitespace($_);
@@ -1394,17 +1393,16 @@ sub OVERLOAD_handler()
   }
 }
 
-sub FALLBACK_handler()
-{
+sub FALLBACK_handler() {
   # the rest of the current line should contain either TRUE,
   # FALSE or UNDEF
 
   TrimWhitespace($_);
   my %map = (
-         TRUE => "&PL_sv_yes", 1 => "&PL_sv_yes",
-         FALSE => "&PL_sv_no", 0 => "&PL_sv_no",
-         UNDEF => "&PL_sv_undef",
-        );
+    TRUE => "&PL_sv_yes", 1 => "&PL_sv_yes",
+    FALSE => "&PL_sv_no", 0 => "&PL_sv_no",
+    UNDEF => "&PL_sv_undef",
+  );
 
   # check for valid FALLBACK value
   death ("Error: FALLBACK: TRUE/FALSE/UNDEF") unless exists $map{uc $_};
@@ -1413,274 +1411,263 @@ sub FALLBACK_handler()
 }
 
 
-sub REQUIRE_handler ()
-  {
-    # the rest of the current line should contain a version number
-    my ($Ver) = $_;
+sub REQUIRE_handler () {
+  # the rest of the current line should contain a version number
+  my ($Ver) = $_;
 
-    TrimWhitespace($Ver);
+  TrimWhitespace($Ver);
 
-    death ("Error: REQUIRE expects a version number")
-      unless $Ver;
+  death ("Error: REQUIRE expects a version number")
+    unless $Ver;
 
-    # check that the version number is of the form n.n
-    death ("Error: REQUIRE: expected a number, got '$Ver'")
-      unless $Ver =~ /^\d+(\.\d*)?/;
+  # check that the version number is of the form n.n
+  death ("Error: REQUIRE: expected a number, got '$Ver'")
+    unless $Ver =~ /^\d+(\.\d*)?/;
 
-    death ("Error: xsubpp $Ver (or better) required--this is only $VERSION.")
-      unless $VERSION >= $Ver;
-  }
+  death ("Error: xsubpp $Ver (or better) required--this is only $VERSION.")
+    unless $VERSION >= $Ver;
+}
 
-sub VERSIONCHECK_handler ()
-  {
-    # the rest of the current line should contain either ENABLE or
-    # DISABLE
+sub VERSIONCHECK_handler () {
+  # the rest of the current line should contain either ENABLE or
+  # DISABLE
 
+  TrimWhitespace($_);
+
+  # check for ENABLE/DISABLE
+  death ("Error: VERSIONCHECK: ENABLE/DISABLE")
+    unless /^(ENABLE|DISABLE)/i;
+
+  $WantVersionChk = 1 if $1 eq 'ENABLE';
+  $WantVersionChk = 0 if $1 eq 'DISABLE';
+
+}
+
+sub PROTOTYPE_handler () {
+  my $specified;
+
+  death("Error: Only 1 PROTOTYPE definition allowed per xsub")
+    if $proto_in_this_xsub ++;
+
+  for (;  !/^$BLOCK_re/o;  $_ = shift(@line)) {
+    next unless /\S/;
+    $specified = 1;
     TrimWhitespace($_);
-
-    # check for ENABLE/DISABLE
-    death ("Error: VERSIONCHECK: ENABLE/DISABLE")
-      unless /^(ENABLE|DISABLE)/i;
-
-    $WantVersionChk = 1 if $1 eq 'ENABLE';
-    $WantVersionChk = 0 if $1 eq 'DISABLE';
-
-  }
-
-sub PROTOTYPE_handler ()
-  {
-    my $specified;
-
-    death("Error: Only 1 PROTOTYPE definition allowed per xsub")
-      if $proto_in_this_xsub ++;
-
-    for (;  !/^$BLOCK_re/o;  $_ = shift(@line)) {
-      next unless /\S/;
-      $specified = 1;
-      TrimWhitespace($_);
-      if ($_ eq 'DISABLE') {
-    $ProtoThisXSUB = 0
-      } elsif ($_ eq 'ENABLE') {
-    $ProtoThisXSUB = 1
-      } else {
-    # remove any whitespace
-    s/\s+//g;
-    death("Error: Invalid prototype '$_'")
-      unless ValidProtoString($_);
-    $ProtoThisXSUB = C_string($_);
-      }
+    if ($_ eq 'DISABLE') {
+      $ProtoThisXSUB = 0;
     }
-
-    # If no prototype specified, then assume empty prototype ""
-    $ProtoThisXSUB = 2 unless $specified;
-
-    $ProtoUsed = 1;
-
+    elsif ($_ eq 'ENABLE') {
+      $ProtoThisXSUB = 1;
+    }
+    else {
+      # remove any whitespace
+      s/\s+//g;
+      death("Error: Invalid prototype '$_'")
+        unless ValidProtoString($_);
+      $ProtoThisXSUB = C_string($_);
+    }
   }
 
-sub SCOPE_handler ()
-  {
-    death("Error: Only 1 SCOPE declaration allowed per xsub")
-      if $scope_in_this_xsub ++;
+  # If no prototype specified, then assume empty prototype ""
+  $ProtoThisXSUB = 2 unless $specified;
 
-    TrimWhitespace($_);
-    death ("Error: SCOPE: ENABLE/DISABLE")
-        unless /^(ENABLE|DISABLE)\b/i;
-    $ScopeThisXSUB = ( uc($1) eq 'ENABLE' );
-  }
+  $ProtoUsed = 1;
+}
 
-sub PROTOTYPES_handler ()
-  {
-    # the rest of the current line should contain either ENABLE or
-    # DISABLE
+sub SCOPE_handler () {
+  death("Error: Only 1 SCOPE declaration allowed per xsub")
+    if $scope_in_this_xsub ++;
 
-    TrimWhitespace($_);
+  TrimWhitespace($_);
+  death ("Error: SCOPE: ENABLE/DISABLE")
+      unless /^(ENABLE|DISABLE)\b/i;
+  $ScopeThisXSUB = ( uc($1) eq 'ENABLE' );
+}
 
-    # check for ENABLE/DISABLE
-    death ("Error: PROTOTYPES: ENABLE/DISABLE")
-      unless /^(ENABLE|DISABLE)/i;
+sub PROTOTYPES_handler () {
+  # the rest of the current line should contain either ENABLE or
+  # DISABLE
 
-    $WantPrototypes = 1 if $1 eq 'ENABLE';
-    $WantPrototypes = 0 if $1 eq 'DISABLE';
-    $ProtoUsed = 1;
+  TrimWhitespace($_);
 
-  }
+  # check for ENABLE/DISABLE
+  death ("Error: PROTOTYPES: ENABLE/DISABLE")
+    unless /^(ENABLE|DISABLE)/i;
 
-sub PushXSStack
-  {
-    # Save the current file context.
-    push(@XSStack, {
-            type            => 'file',
-            LastLine        => $lastline,
-            LastLineNo      => $lastline_no,
-            Line            => \@line,
-            LineNo          => \@line_no,
-            Filename        => $filename,
-            Filepathname    => $filepathname,
-            Handle          => $FH,
-           });
+  $WantPrototypes = 1 if $1 eq 'ENABLE';
+  $WantPrototypes = 0 if $1 eq 'DISABLE';
+  $ProtoUsed = 1;
 
-  }
+}
 
-sub INCLUDE_handler ()
-  {
-    # the rest of the current line should contain a valid filename
+sub PushXSStack {
+  # Save the current file context.
+  push(@XSStack, {
+          type            => 'file',
+          LastLine        => $lastline,
+          LastLineNo      => $lastline_no,
+          Line            => \@line,
+          LineNo          => \@line_no,
+          Filename        => $filename,
+          Filepathname    => $filepathname,
+          Handle          => $FH,
+         });
 
-    TrimWhitespace($_);
+}
 
-    death("INCLUDE: filename missing")
-      unless $_;
+sub INCLUDE_handler () {
+  # the rest of the current line should contain a valid filename
 
-    death("INCLUDE: output pipe is illegal")
-      if /^\s*\|/;
+  TrimWhitespace($_);
 
-    # simple minded recursion detector
-    death("INCLUDE loop detected")
-      if $IncludedFiles{$_};
+  death("INCLUDE: filename missing")
+    unless $_;
 
-    ++ $IncludedFiles{$_} unless /\|\s*$/;
+  death("INCLUDE: output pipe is illegal")
+    if /^\s*\|/;
 
-    Warn("The INCLUDE directive with a command is deprecated." .
-         " Use INCLUDE_COMMAND instead!")
-      if /\|\s*$/;
+  # simple minded recursion detector
+  death("INCLUDE loop detected")
+    if $IncludedFiles{$_};
 
-    PushXSStack();
+  ++ $IncludedFiles{$_} unless /\|\s*$/;
 
-    $FH = Symbol::gensym();
+  Warn("The INCLUDE directive with a command is deprecated." .
+       " Use INCLUDE_COMMAND instead!")
+    if /\|\s*$/;
 
-    # open the new file
-    open ($FH, "$_") or death("Cannot open '$_': $!");
+  PushXSStack();
 
-    print Q(<<"EOF");
+  $FH = Symbol::gensym();
+
+  # open the new file
+  open ($FH, "$_") or death("Cannot open '$_': $!");
+
+  print Q(<<"EOF");
 #
 #/* INCLUDE:  Including '$_' from '$filename' */
 #
 EOF
 
-    $filename = $_;
-    $filepathname = "$dir/$filename";
+  $filename = $_;
+  $filepathname = "$dir/$filename";
 
-    # Prime the pump by reading the first
-    # non-blank line
+  # Prime the pump by reading the first
+  # non-blank line
 
-    # skip leading blank lines
-    while (<$FH>) {
-      last unless /^\s*$/;
-    }
-
-    $lastline = $_;
-    $lastline_no = $.;
+  # skip leading blank lines
+  while (<$FH>) {
+    last unless /^\s*$/;
   }
 
-sub INCLUDE_COMMAND_handler ()
-  {
-    # the rest of the current line should contain a valid command
+  $lastline = $_;
+  $lastline_no = $.;
+}
 
-    TrimWhitespace($_);
+sub INCLUDE_COMMAND_handler () {
+  # the rest of the current line should contain a valid command
 
-    death("INCLUDE_COMMAND: command missing")
-      unless $_;
+  TrimWhitespace($_);
 
-    death("INCLUDE_COMMAND: pipes are illegal")
-      if /^\s*\|/ or /\|\s*$/;
+  death("INCLUDE_COMMAND: command missing")
+    unless $_;
 
-    PushXSStack();
+  death("INCLUDE_COMMAND: pipes are illegal")
+    if /^\s*\|/ or /\|\s*$/;
 
-    $FH = Symbol::gensym();
+  PushXSStack();
 
-    # If $^X is used in INCLUDE_COMMAND, we know it's supposed to be
-    # the same perl interpreter as we're currently running
-    s/^\s*\$\^X/$^X/;
+  $FH = Symbol::gensym();
 
-    # open the new file
-    open ($FH, "-|", "$_")
-      or death("Cannot run command '$_' to include its output: $!");
+  # If $^X is used in INCLUDE_COMMAND, we know it's supposed to be
+  # the same perl interpreter as we're currently running
+  s/^\s*\$\^X/$^X/;
 
-    print Q(<<"EOF");
+  # open the new file
+  open ($FH, "-|", "$_")
+    or death("Cannot run command '$_' to include its output: $!");
+
+  print Q(<<"EOF");
 #
 #/* INCLUDE_COMMAND:  Including output of '$_' from '$filename' */
 #
 EOF
 
-    $filename = $_;
-    $filepathname = "$dir/$filename";
+  $filename = $_;
+  $filepathname = "$dir/$filename";
 
-    # Prime the pump by reading the first
-    # non-blank line
+  # Prime the pump by reading the first
+  # non-blank line
 
-    # skip leading blank lines
-    while (<$FH>) {
-      last unless /^\s*$/;
-    }
-
-    $lastline = $_;
-    $lastline_no = $.;
+  # skip leading blank lines
+  while (<$FH>) {
+    last unless /^\s*$/;
   }
 
-sub PopFile()
-  {
-    return 0 unless $XSStack[-1]{type} eq 'file';
+  $lastline = $_;
+  $lastline_no = $.;
+}
 
-    my $data     = pop @XSStack;
-    my $ThisFile = $filename;
-    my $isPipe   = ($filename =~ /\|\s*$/);
+sub PopFile() {
+  return 0 unless $XSStack[-1]{type} eq 'file';
 
-    -- $IncludedFiles{$filename}
-      unless $isPipe;
+  my $data     = pop @XSStack;
+  my $ThisFile = $filename;
+  my $isPipe   = ($filename =~ /\|\s*$/);
 
-    close $FH;
+  -- $IncludedFiles{$filename}
+    unless $isPipe;
 
-    $FH         = $data->{Handle};
-    # $filename is the leafname, which for some reason isused for diagnostic
-    # messages, whereas $filepathname is the full pathname, and is used for
-    # #line directives.
-    $filename   = $data->{Filename};
-    $filepathname = $data->{Filepathname};
-    $lastline   = $data->{LastLine};
-    $lastline_no = $data->{LastLineNo};
-    @line       = @{ $data->{Line} };
-    @line_no    = @{ $data->{LineNo} };
+  close $FH;
 
-    if ($isPipe and $? ) {
-      -- $lastline_no;
-      print STDERR "Error reading from pipe '$ThisFile': $! in $filename, line $lastline_no\n" ;
-      exit 1;
-    }
+  $FH         = $data->{Handle};
+  # $filename is the leafname, which for some reason isused for diagnostic
+  # messages, whereas $filepathname is the full pathname, and is used for
+  # #line directives.
+  $filename   = $data->{Filename};
+  $filepathname = $data->{Filepathname};
+  $lastline   = $data->{LastLine};
+  $lastline_no = $data->{LastLineNo};
+  @line       = @{ $data->{Line} };
+  @line_no    = @{ $data->{LineNo} };
 
-    print Q(<<"EOF");
+  if ($isPipe and $? ) {
+    -- $lastline_no;
+    print STDERR "Error reading from pipe '$ThisFile': $! in $filename, line $lastline_no\n" ;
+    exit 1;
+  }
+
+  print Q(<<"EOF");
 #
 #/* INCLUDE: Returning to '$filename' from '$ThisFile' */
 #
 EOF
 
-    return 1;
+  return 1;
+}
+
+sub ValidProtoString ($) {
+  my($string) = @_;
+
+  if ( $string =~ /^$proto_re+$/ ) {
+    return $string;
   }
 
-sub ValidProtoString ($)
-  {
-    my($string) = @_;
+  return 0;
+}
 
-    if ( $string =~ /^$proto_re+$/ ) {
-      return $string;
-    }
+sub C_string ($) {
+  my($string) = @_;
 
-    return 0;
-  }
+  $string =~ s[\\][\\\\]g;
+  $string;
+}
 
-sub C_string ($)
-  {
-    my($string) = @_;
+sub ProtoString ($) {
+  my ($type) = @_;
 
-    $string =~ s[\\][\\\\]g;
-    $string;
-  }
-
-sub ProtoString ($)
-  {
-    my ($type) = @_;
-
-    $proto_letter{$type} or "\$";
-  }
+  $proto_letter{$type} or "\$";
+}
 
 sub check_cpp {
   my @cpp = grep(/^\#\s*(?:if|e\w+)/, @line);
@@ -1688,14 +1675,16 @@ sub check_cpp {
     my ($cpp, $cpplevel);
     for $cpp (@cpp) {
       if ($cpp =~ /^\#\s*if/) {
-    $cpplevel++;
-      } elsif (!$cpplevel) {
-    Warn("Warning: #else/elif/endif without #if in this function");
-    print STDERR "    (precede it with a blank line if the matching #if is outside the function)\n"
-      if $XSStack[-1]{type} eq 'if';
-    return;
-      } elsif ($cpp =~ /^\#\s*endif/) {
-    $cpplevel--;
+        $cpplevel++;
+      }
+      elsif (!$cpplevel) {
+        Warn("Warning: #else/elif/endif without #if in this function");
+        print STDERR "    (precede it with a blank line if the matching #if is outside the function)\n"
+          if $XSStack[-1]{type} eq 'if';
+        return;
+      }
+      elsif ($cpp =~ /^\#\s*endif/) {
+        $cpplevel--;
       }
     }
     Warn("Warning: #if without #endif in this function") if $cpplevel;
@@ -1737,7 +1726,7 @@ sub fetch_para {
     # Skip embedded PODs
     while ($lastline =~ /^=/) {
       while ($lastline = <$FH>) {
-    last if ($lastline =~ /^=cut\s*$/);
+        last if ($lastline =~ /^=cut\s*$/);
       }
       death ("Error: Unterminated pod") unless $lastline;
       $lastline = <$FH>;
@@ -1778,45 +1767,46 @@ sub output_init {
   if (  $init =~ /^=/  ) {
     if ($name_printed) {
       eval qq/print " $init\\n"/;
-    } else {
+    }
+    else {
       eval qq/print "\\t$var $init\\n"/;
     }
     warn $@   if  $@;
-  } else {
+  }
+  else {
     if (  $init =~ s/^\+//  &&  $num  ) {
       &generate_init($type, $num, $var, $name_printed);
-    } elsif ($name_printed) {
+    }
+    elsif ($name_printed) {
       print ";\n";
       $init =~ s/^;//;
-    } else {
+    }
+    else {
       eval qq/print "\\t$var;\\n"/;
       warn $@   if  $@;
       $init =~ s/^;//;
     }
     $deferred .= eval qq/"\\n\\t$init\\n"/;
-    warn $@   if  $@;
+    warn $@ if $@;
   }
 }
 
-sub Warn
-  {
-    # work out the line number
-    my $line_no = $line_no[@line_no - @line -1];
+sub Warn {
+  # work out the line number
+  my $line_no = $line_no[@line_no - @line -1];
 
-    print STDERR "@_ in $filename, line $line_no\n";
-  }
+  print STDERR "@_ in $filename, line $line_no\n";
+}
 
-sub blurt
-  {
-    Warn @_;
-    $errors ++
-  }
+sub blurt {
+  Warn @_;
+  $errors ++
+}
 
-sub death
-  {
-    Warn @_;
-    exit 1;
-  }
+sub death {
+  Warn @_;
+  exit 1;
+}
 
 sub generate_init {
   local($type, $num, $var) = @_;
@@ -1866,26 +1856,31 @@ sub generate_init {
     $expr =~ s/        /\t/g;
     if ($name_printed) {
       print ";\n";
-    } else {
+    }
+    else {
       eval qq/print "\\t$var;\\n"/;
       warn $@   if  $@;
     }
     if ($defaults{$var} eq 'NO_INIT') {
       $deferred .= eval qq/"\\n\\tif (items >= $num) {\\n$expr;\\n\\t}\\n"/;
-    } else {
+    }
+    else {
       $deferred .= eval qq/"\\n\\tif (items < $num)\\n\\t    $var = $defaults{$var};\\n\\telse {\\n$expr;\\n\\t}\\n"/;
     }
     warn $@   if  $@;
-  } elsif ($ScopeThisXSUB or $expr !~ /^\s*\$var =/) {
+  }
+  elsif ($ScopeThisXSUB or $expr !~ /^\s*\$var =/) {
     if ($name_printed) {
       print ";\n";
-    } else {
+    }
+    else {
       eval qq/print "\\t$var;\\n"/;
       warn $@   if  $@;
     }
     $deferred .= eval qq/"\\n$expr;\\n"/;
     warn $@   if  $@;
-  } else {
+  }
+  else {
     die "panic: do not know how to handle this branch for function pointers"
       if $name_printed;
     eval qq/print "$expr;\\n"/;
@@ -1904,7 +1899,8 @@ sub generate_output {
     print "\t$arg = sv_newmortal();\n";
     print "\tsv_setpvn($arg, (char *)$var, $2 * sizeof($1));\n";
     print "\tSvSETMAGIC($arg);\n" if $do_setmagic;
-  } else {
+  }
+  else {
     blurt("Error: '$type' not in typemap"), return
       unless defined($type_kind{$type});
     blurt("Error: No OUTPUT definition for type '$type', typekind '$type_kind{$type}' found"), return
@@ -1927,38 +1923,43 @@ sub generate_output {
       eval "print qq\a$expr\a";
       warn $@   if  $@;
       print "\t\tSvSETMAGIC(ST(ix_$var));\n" if $do_setmagic;
-    } elsif ($var eq 'RETVAL') {
+    }
+    elsif ($var eq 'RETVAL') {
       if ($expr =~ /^\t\$arg = new/) {
-    # We expect that $arg has refcnt 1, so we need to
-    # mortalize it.
-    eval "print qq\a$expr\a";
-    warn $@   if  $@;
-    print "\tsv_2mortal(ST($num));\n";
-    print "\tSvSETMAGIC(ST($num));\n" if $do_setmagic;
-      } elsif ($expr =~ /^\s*\$arg\s*=/) {
-    # We expect that $arg has refcnt >=1, so we need
-    # to mortalize it!
-    eval "print qq\a$expr\a";
-    warn $@   if  $@;
-    print "\tsv_2mortal(ST(0));\n";
-    print "\tSvSETMAGIC(ST(0));\n" if $do_setmagic;
-      } else {
-    # Just hope that the entry would safely write it
-    # over an already mortalized value. By
-    # coincidence, something like $arg = &sv_undef
-    # works too.
-    print "\tST(0) = sv_newmortal();\n";
-    eval "print qq\a$expr\a";
-    warn $@   if  $@;
-    # new mortals don't have set magic
+        # We expect that $arg has refcnt 1, so we need to
+        # mortalize it.
+        eval "print qq\a$expr\a";
+        warn $@   if  $@;
+        print "\tsv_2mortal(ST($num));\n";
+        print "\tSvSETMAGIC(ST($num));\n" if $do_setmagic;
       }
-    } elsif ($do_push) {
+      elsif ($expr =~ /^\s*\$arg\s*=/) {
+        # We expect that $arg has refcnt >=1, so we need
+        # to mortalize it!
+        eval "print qq\a$expr\a";
+        warn $@   if  $@;
+        print "\tsv_2mortal(ST(0));\n";
+        print "\tSvSETMAGIC(ST(0));\n" if $do_setmagic;
+      }
+      else {
+        # Just hope that the entry would safely write it
+        # over an already mortalized value. By
+        # coincidence, something like $arg = &sv_undef
+        # works too.
+        print "\tST(0) = sv_newmortal();\n";
+        eval "print qq\a$expr\a";
+        warn $@   if  $@;
+        # new mortals don't have set magic
+      }
+    }
+    elsif ($do_push) {
       print "\tPUSHs(sv_newmortal());\n";
       $arg = "ST($num)";
       eval "print qq\a$expr\a";
       warn $@   if  $@;
       print "\tSvSETMAGIC($arg);\n" if $do_setmagic;
-    } elsif ($arg =~ /^ST\(\d+\)$/) {
+    }
+    elsif ($arg =~ /^ST\(\d+\)$/) {
       eval "print qq\a$expr\a";
       warn $@   if  $@;
       print "\tSvSETMAGIC($arg);\n" if $do_setmagic;
@@ -1975,7 +1976,8 @@ sub map_type {
   if ($varname) {
     if ($varname && $type =~ / \( \s* \* (?= \s* \) ) /xg) {
       (substr $type, pos $type, 0) = " $varname ";
-    } else {
+    }
+    else {
       $type .= "\t$varname";
     }
   }
@@ -1994,10 +1996,11 @@ sub TIEHANDLE {
   $cfile =~ s/\\/\\\\/g;
   $SECTION_END_MARKER = qq{#line --- "$cfile"};
 
-  return bless {buffer => '',
-        fh => $fh,
-        line_no => 1,
-           }, $class;
+  return bless {
+    buffer => '',
+    fh => $fh,
+    line_no => 1,
+  }, $class;
 }
 
 sub PRINT {
@@ -2032,7 +2035,6 @@ sub UNTIE {
 sub end_marker {
   return $SECTION_END_MARKER;
 }
-
 
 1;
 __END__
