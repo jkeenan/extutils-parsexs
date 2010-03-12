@@ -2,6 +2,8 @@ Build.PL
 Changes
 INSTALL
 lib/ExtUtils/ParseXS.pm
+lib/ExtUtils/ParseXS.pod
+lib/ExtUtils/ParseXS/Utilities.pm
 lib/ExtUtils/xsubpp
 Makefile.PL
 MANIFEST
