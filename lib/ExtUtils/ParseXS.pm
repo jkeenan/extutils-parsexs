@@ -1,6 +1,5 @@
 package ExtUtils::ParseXS;
-use strict 'subs';
-use strict 'refs';
+use strict;
 
 use 5.006;  # We use /??{}/ in regexes
 use Cwd;
@@ -676,12 +675,12 @@ EOF
         if (defined($static) or $func_name eq 'new') {
           print "\tchar *";
           $var_types{"CLASS"} = "char *";
-          &generate_init("char *", 1, "CLASS");
+          &generate_init("char *", 1, "CLASS", undef);
         }
         else {
           print "\t$class *";
           $var_types{"THIS"} = "$class *";
-          &generate_init("$class *", 1, "THIS");
+          &generate_init("$class *", 1, "THIS", undef);
         }
       }
 
@@ -1658,8 +1657,8 @@ sub fetch_para {
 }
 
 sub output_init {
-  local($type, $num, $var, $init, $printed_name) = @_;
-  local($arg) = "ST(" . ($num - 1) . ")";
+  my ($type, $num, $var, $init, $printed_name) = @_;
+  my $arg = "ST(" . ($num - 1) . ")";
 
   if (  $init =~ /^=/  ) {
     if ($printed_name) {
@@ -1706,13 +1705,8 @@ sub death {
 }
 
 sub generate_init {
-#  local($type, $num, $var) = @_;
-#  local($arg) = "ST(" . ($num - 1) . ")";
-  my ($type, $num, $var) = @_;
+  my ($type, $num, $var, $printed_name) = @_;
   my $arg = "ST(" . ($num - 1) . ")";
-#  local($argoff) = $num - 1;
-#  local($ntype);
-#  local($tk);
   my ($argoff, $ntype, $tk);
   $argoff = $num - 1;
 
@@ -1791,12 +1785,8 @@ sub generate_init {
 }
 
 sub generate_output {
-#  local($type, $num, $var, $do_setmagic, $do_push) = @_;
-#  local($arg) = "ST(" . ($num - ($num != 0)) . ")";
   my ($type, $num, $var, $do_setmagic, $do_push) = @_;
   my $arg = "ST(" . ($num - ($num != 0)) . ")";
-#  local($argoff) = $num - 1;
-#  local($ntype);
   my $ntype;
 
   $type = tidy_type($type);
