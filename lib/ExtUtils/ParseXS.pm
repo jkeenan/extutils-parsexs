@@ -1551,7 +1551,6 @@ sub check_cpp {
   }
 }
 
-
 sub Q {
   my($text) = @_;
   $text =~ s/^#//gm;
